@@ -266,17 +266,50 @@ module Prawn
       end
 
       def border_style=(s)
-        @cells.each { |e| e.border_style = s }
+        @cells.each { |e| e.border_style = s if e.respond_to?(:border_style=) }
       end    
       
       def align=(align) 
-        @cells.each { |e| e.align = align } 
+        @cells.each { |e| e.align = align if e.respond_to?(:align=) } 
       end           
       
       def border_style
         @cells[0].border_style
       end
 
+    end
+
+    # Adapter to make a Table act like a Cell.
+    class Subtable #:nodoc:
+      # TODO: fix these; should they do anything?
+      attr_accessor :background_color, :text_color, :border_color
+
+      def initialize(table, document)
+        @table = table
+        @document = document
+      end
+
+      def point=(p)
+        @point = p
+      end
+
+      def height
+        @height ||= @table.height
+      end
+
+      def height=(h)
+        # TODO: should this propagate down?
+      end
+
+      def width
+        @table.width
+      end
+
+      def draw
+        @document.bounding_box(@point, :width => width) do
+          @table.draw
+        end
+      end
     end
   end
  

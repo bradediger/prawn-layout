@@ -156,7 +156,22 @@ module Prawn
     # Width of the table in PDF points
     #
     def width
-       @column_widths.inject(0) { |s,r| s + r }
+      @column_widths.inject(0) { |s,r| s + r }
+    end
+
+    # Height of the table in PDF points
+    # TODO: so many problems, where do we start?
+    #
+    def height
+      old_y = @document.y
+      @document.transaction do
+        draw
+        @document.rollback
+      end
+      new_y = @document.y
+      @document.y = old_y
+
+      old_y - new_y
     end
     
     # Draws the table onto the PDF document
@@ -208,10 +223,14 @@ module Prawn
       renderable_data.each do |row|
         colspan = 0
         row.each_with_index do |cell,i|
-          cell_text = cell.is_a?(Hash) ? cell[:text] : cell.to_s
-          length = cell_text.lines.map { |e|
-            @document.width_of(e, :size => C(:font_size)) }.max.to_f +
-              2*C(:horizontal_padding)
+          length = if cell.respond_to?(:width)
+                     cell.width
+                   else
+                     cell_text = cell.is_a?(Hash) ? cell[:text] : cell.to_s
+                     length = cell_text.lines.map { |e|
+                       @document.width_of(e, :size => C(:font_size)) 
+                     }.max.to_f + 2*C(:horizontal_padding)
+                   end
           if length > @column_widths[i+colspan]
             @column_widths[i+colspan] = length.ceil
           end
@@ -287,6 +306,9 @@ module Prawn
             align ||= e.to_s =~ NUMBER_PATTERN ? :right : :left 
             
             case e
+            when Prawn::Table
+              # Subtable makes a Table act like a Cell.
+              c << Prawn::Table::Subtable.new(e, @document)
             when Prawn::Table::Cell
               e.document = @document
               e.width    = @column_widths[col_index]
