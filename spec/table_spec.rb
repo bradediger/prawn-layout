@@ -311,7 +311,7 @@ describe "Prawn::Table#height" do
     table.draw
     new_y = pdf.y
     
-    calculated_height.should == old_y - new_y
+    calculated_height.should.be.close(old_y - new_y, 0.01)
   end
 
 end
