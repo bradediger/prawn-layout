@@ -289,6 +289,33 @@ describe "A table's content" do
   end
 end
 
+describe "Prawn::Table#cell_blocks" do
+
+  it "should not draw on the document" do
+    pdf = Prawn::Document.new
+    table = Prawn::Table.new([['blah']], pdf)
+
+    table.send(:cell_blocks)
+
+    output = PDF::Inspector::Text.analyze(pdf.render)   
+    output.strings.should == []
+  end
+
+  it "should memoize its answer" do
+    pdf = Prawn::Document.new
+    table = Prawn::Table.new([['blah']], pdf)
+
+    data = table.send(:renderable_data)
+    table.expects(:renderable_data).once.returns(data)
+
+    cb1 = table.send(:cell_blocks)
+    cb2 = table.send(:cell_blocks)
+
+    cb2.should == cb1    
+  end
+
+end
+
 describe "Prawn::Table#height" do
   
   it "should not draw on the document" do

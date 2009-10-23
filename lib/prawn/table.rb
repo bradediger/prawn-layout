@@ -276,17 +276,21 @@ module Prawn
       end
     end
 
-
     def renderable_data
       C(:headers) ? [C(:headers)] + @data : @data
     end
 
-    def generate_table    
-      page_contents = []
-      y_pos = @document.y 
+    # Creates and returns an array of Prawn::Table::CellBlock objects, one per
+    # row. This does not affect document state, so it can be used to calculate
+    # metrics on the table before rendering.
+    #
+    def cell_blocks
+      return @cell_blocks if @cell_blocks
+
+      @cell_blocks = []
 
       @document.font_size C(:font_size) do
-        renderable_data.each_with_index do |row,index|
+        renderable_data.each_with_index do |row, index|
           c = Prawn::Table::CellBlock.new(@document)
           
           if C(:row_colors).is_a?(Hash)
@@ -304,7 +308,6 @@ module Prawn
             else
               align            = C(:align)
             end   
-            
             
             align ||= e.to_s =~ NUMBER_PATTERN ? :right : :left 
             
@@ -331,9 +334,9 @@ module Prawn
               end
               
               cell_options = {
-                :document => @document, 
-                :text     => text,
-                :width    => width,
+                :document           => @document, 
+                :text               => text,
+                :width              => width,
                 :horizontal_padding => C(:horizontal_padding),
                 :vertical_padding   => C(:vertical_padding),
                 :border_width       => C(:border_width),
@@ -353,6 +356,21 @@ module Prawn
             col_index += (e.is_a?(Hash) && e.has_key?(:colspan)) ? e[:colspan] : 1
           end
                                               
+          @cell_blocks << c
+
+        end
+      end
+
+      @cell_blocks
+    end
+
+    def generate_table
+      page_contents = []
+      y_pos = @document.y
+
+      @document.font_size C(:font_size) do
+        cell_blocks.each_with_index do |c, index|
+
           bbox = @parent_bounds.stretchy? ? @document.margin_box : @parent_bounds
           if c.height > y_pos - bbox.absolute_bottom
             if C(:headers) && page_contents.length == 1
