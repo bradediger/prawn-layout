@@ -160,18 +160,9 @@ module Prawn
     end
 
     # Height of the table in PDF points
-    # TODO: so many problems, where do we start?
     #
     def height
-      old_y = @document.y
-      @document.transaction do
-        draw
-        @document.rollback
-      end
-      new_y = @document.y
-      @document.y = old_y
-
-      old_y - new_y
+      cell_blocks.inject(0) { |s,c| s + c.height }
     end
     
     # Draws the table onto the PDF document
