@@ -283,14 +283,20 @@ module Prawn
     #
     class Subtable #:nodoc:
 
-      # These do nothing; for example, :row_colors on the parent table does
-      # not color the subtable. You must set these attributes on the subtable
-      # itself as you wish.
-      attr_accessor :background_color, :text_color, :border_color
+      # You must set these attributes on the subtable itself as you wish.
+      attr_accessor :text_color, :border_color
 
       def initialize(table, document)
         @table = table
         @document = document
+      end
+
+      attr_reader :background_color
+
+      # Background color propagates down
+      def background_color=(c)
+        @background_color = @table.configuration[:row_colors] = 
+          @table.configuration[:original_row_colors] = [c]
       end
 
       def point=(p)
