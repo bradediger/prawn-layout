@@ -289,6 +289,33 @@ describe "A table's content" do
   end
 end
 
+describe "Prawn::Table#height" do
+  
+  it "should not draw on the document" do
+    pdf = Prawn::Document.new
+    table = Prawn::Table.new([['blah']], pdf)
+
+    table.height
+
+    output = PDF::Inspector::Text.analyze(pdf.render)   
+    output.strings.should == []
+  end
+
+  it "should return the same value as when table is actually drawn" do
+    pdf = Prawn::Document.new
+    table = Prawn::Table.new([['blah']], pdf)
+
+    calculated_height = table.height
+
+    old_y = pdf.y
+    table.draw
+    new_y = pdf.y
+    
+    calculated_height.should == old_y - new_y
+  end
+
+end
+
 describe "An invalid table" do
   
   before(:each) do
