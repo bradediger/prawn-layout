@@ -280,8 +280,12 @@ module Prawn
     end
 
     # Adapter to make a Table act like a Cell.
+    #
     class Subtable #:nodoc:
-      # TODO: fix these; should they do anything?
+
+      # These do nothing; for example, :row_colors on the parent table does
+      # not color the subtable. You must set these attributes on the subtable
+      # itself as you wish.
       attr_accessor :background_color, :text_color, :border_color
 
       def initialize(table, document)
@@ -298,7 +302,7 @@ module Prawn
       end
 
       def height=(h)
-        # TODO: should this propagate down?
+        # do nothing
       end
 
       def width
