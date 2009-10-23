@@ -223,6 +223,9 @@ module Prawn
       renderable_data.each do |row|
         colspan = 0
         row.each_with_index do |cell,i|
+          # Cell needs a document to calculate its width
+          cell.document = @document if cell.is_a?(Prawn::Table::Cell)
+
           length = if cell.respond_to?(:width)
                      cell.width
                    else
