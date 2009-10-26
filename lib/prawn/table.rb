@@ -208,11 +208,10 @@ module Prawn
     end
 
     def calculate_column_widths(manual_widths=nil, width=nil)
-      @column_widths = [0] * @data[0].inject(0){ |acc, e| 
-        acc += (e.is_a?(Hash) && e.has_key?(:colspan)) ? e[:colspan] : 1 }
+      @column_widths = [0] * @data[0].inject(0){ |acc, e| acc + colspan(e) }
 
       renderable_data.each do |row|
-        colspan = 0
+        total_colspan = 0
         row.each_with_index do |cell,i|
           # Cell needs a document to calculate its width
           cell.document = @document if cell.is_a?(Prawn::Table::Cell)
@@ -225,13 +224,11 @@ module Prawn
                        @document.width_of(e, :size => C(:font_size)) 
                      }.max.to_f + 2*C(:horizontal_padding)
                    end
-          if length > @column_widths[i+colspan]
-            @column_widths[i+colspan] = length.ceil
+          if length > @column_widths[i+total_colspan]
+            @column_widths[i+total_colspan] = length.ceil
           end
 
-          if cell.is_a?(Hash) && cell[:colspan]
-            colspan += cell[:colspan] - 1
-          end
+          total_colspan += (colspan(cell) - 1)
         end
       end  
 
@@ -317,12 +314,8 @@ module Prawn
               c << e
             else
               text = e.is_a?(Hash) ? e[:text] : e.to_s
-              width = if e.is_a?(Hash) && e.has_key?(:colspan)
-                @column_widths.slice(col_index, e[:colspan]).inject { 
-                  |sum, width| sum + width }
-              else
-                @column_widths[col_index]
-              end
+              width = @column_widths[col_index, colspan(e)].inject { 
+                |sum, width| sum + width }
               
               cell_options = {
                 :document           => @document, 
@@ -344,7 +337,7 @@ module Prawn
               c << Prawn::Table::Cell.new(cell_options)
             end
             
-            col_index += (e.is_a?(Hash) && e.has_key?(:colspan)) ? e[:colspan] : 1
+            col_index += colspan(e)
           end
                                               
           @cell_blocks << c
@@ -444,6 +437,11 @@ module Prawn
 
     def reset_row_colors    
       C(:row_colors => C(:original_row_colors).dup) if C(:row_colors)
+    end
+
+    def colspan(cell)
+      return cell[:colspan] if cell.is_a?(Hash) && cell.has_key?(:colspan)
+      1
     end
 
   end
