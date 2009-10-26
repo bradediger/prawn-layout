@@ -208,7 +208,7 @@ module Prawn
     end
 
     def calculate_column_widths(manual_widths=nil, width=nil)
-      @column_widths = [0] * @data[0].inject(0){ |acc, e| acc + colspan(e) }
+      @column_widths = [0] * @data[0].inject(0){ |acc, e| acc + cell_colspan(e) }
 
       renderable_data.each do |row|
         total_colspan = 0
@@ -228,7 +228,7 @@ module Prawn
             @column_widths[i+total_colspan] = length.ceil
           end
 
-          total_colspan += (colspan(cell) - 1)
+          total_colspan += (cell_colspan(cell) - 1)
         end
       end  
 
@@ -314,7 +314,7 @@ module Prawn
               c << e
             else
               text = e.is_a?(Hash) ? e[:text] : e.to_s
-              width = @column_widths[col_index, colspan(e)].inject { 
+              width = @column_widths.slice(col_index, cell_colspan(e)).inject { 
                 |sum, width| sum + width }
               
               cell_options = {
@@ -337,7 +337,7 @@ module Prawn
               c << Prawn::Table::Cell.new(cell_options)
             end
             
-            col_index += colspan(e)
+            col_index += cell_colspan(e)
           end
                                               
           @cell_blocks << c
@@ -439,7 +439,7 @@ module Prawn
       C(:row_colors => C(:original_row_colors).dup) if C(:row_colors)
     end
 
-    def colspan(cell)
+    def cell_colspan(cell)
       return cell.colspan if cell.respond_to?(:colspan)
       return cell[:colspan] if cell.is_a?(Hash) && cell.has_key?(:colspan)
       1
