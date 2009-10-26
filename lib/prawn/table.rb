@@ -440,6 +440,7 @@ module Prawn
     end
 
     def colspan(cell)
+      return cell.colspan if cell.respond_to?(:colspan)
       return cell[:colspan] if cell.is_a?(Hash) && cell.has_key?(:colspan)
       1
     end
