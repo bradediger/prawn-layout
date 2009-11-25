@@ -289,6 +289,51 @@ describe "A table's content" do
   end
 end
 
+# FIXME: These specs are UGLY.
+describe "Alignment" do
+
+  it "should respect vertical alignment of :top" do
+    @pdf = Prawn::Document.new
+    def @pdf.text(text, options={})
+      text.should == "Text"
+      @bounding_box.absolute_top.should.be.close 751.0, 0.01
+    end
+    @pdf.table([[{:text => "Text", :height => 50, :valign => :top}]])
+    @pdf.render
+  end
+
+  it "should default to vertical alignment :top" do
+    @pdf = Prawn::Document.new
+    def @pdf.text(text, options={})
+      text.should == "Text"
+      @bounding_box.absolute_top.should.be.close 751.0, 0.01
+    end
+    @pdf.table([[{:text => "Text", :height => 50}]])
+    @pdf.render
+  end
+
+  it "should respect vertical alignment of :middle" do
+    @pdf = Prawn::Document.new
+    def @pdf.text(text, options={})
+      text.should == "Text"
+      @bounding_box.absolute_top.should.be.close 737.936, 0.01
+    end
+    @pdf.table([[{:text => "Text", :height => 50, :valign => :middle}]])
+    @pdf.render
+  end
+
+  it "should respect vertical alignment of :bottom" do
+    @pdf = Prawn::Document.new
+    def @pdf.text(text, options={})
+      text.should == "Text"
+      @bounding_box.absolute_top.should.be.close 724.872, 0.01
+    end
+    @pdf.table([[{:text => "Text", :height => 50, :valign => :bottom}]])
+    @pdf.render
+  end
+
+end
+
 describe "Prawn::Table#cell_blocks" do
 
   it "should not draw on the document" do
